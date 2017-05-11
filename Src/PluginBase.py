@@ -7,28 +7,10 @@ the plugins do not have to explicitly register.
 import abc
 
 from functools import wraps
-from marshmallow_sqlalchemy import ModelSchema
+from marshmallow import Schema, fields, post_dump
+from marshmallow_jsonschema import JSONSchema
 
 # Decorators
-def generate_schema(cls):
-    """
-    Automatically generate json schema for each plugin model.
-
-    """
-    class Schema(ModelSchema):
-        """
-        Automatically attach Schema to model.
-
-        """
-        class Meta:
-            """
-            Meta class for schema generation.
-
-            """
-            model = cls
-    cls.Schema = Schema
-    return cls
-
 def check_input_configuration(func):
     """
     Checks input format registered by a plugin.
@@ -106,12 +88,14 @@ def dont_decorate(func):
 
 # Plugin implementation
 
-class PluginBase(metaclass=abc.ABCMeta):
+class PluginBase(Schema):
     """
     The base class for all plugins that want to register with this application.
 
     """
     plugin_registry = []
+    def __init__(self):
+        Schema.__init__(self)
 
     def __new__(cls, *args, **kwargs):
         """
@@ -121,6 +105,8 @@ class PluginBase(metaclass=abc.ABCMeta):
         del args
         del kwargs
         instance = object.__new__(cls)
+        # Call base class constructors by default to avoid doing them in each plugin.
+        super(cls, instance).__init__()
         typedef = cls.__dict__
         for attr in typedef:
             func = typedef[attr]
@@ -132,7 +118,6 @@ class PluginBase(metaclass=abc.ABCMeta):
                 setattr(cls, attr, check_chart_configuration(func))
             elif callable(func) and func.__name__ == 'get_modes_of_operation':
                 setattr(cls, attr, check_modes_of_operation(func))
-
         cls.plugin_registry.append(instance)
         return instance
 
@@ -177,18 +162,29 @@ class PluginBase(metaclass=abc.ABCMeta):
         print("Running abstract method")
         return
 
+    @post_dump
+    def add_extra_field(self, output):
+        """
+        Add extra field for sake of poc.
 
+        """
+        output['plugin_name'] = type(self).__name__
+        return output
 
 class Test(PluginBase):
     """
     Unit test class.
 
     """
+    ident = fields.Int()
+    name = fields.String()
+
     def __init__(self):
         """
         Constructor
 
         """
+        # pylint: disable=W0231
         print("Test constructor")
 
     def get_input_configuration(self):
@@ -205,6 +201,11 @@ class Test(PluginBase):
 
 if __name__ == '__main__':
     TEST = Test()
+    TEST.ident = 11
+    TEST.name = 'John Doe'
     TEST.get_input_configuration()
     TEST.get_chart_configuration()
     TEST.get_modes_of_operation()
+    print(TEST.dump(TEST).data)
+    JSON_SCHEMA = JSONSchema()
+    print(JSON_SCHEMA.dump(TEST).data)

@@ -1,1 +1,2 @@
-marshmallow_sqlalchemy
+marshmallow
+marshmallow_jsonschema
