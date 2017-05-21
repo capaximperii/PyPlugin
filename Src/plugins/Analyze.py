@@ -20,6 +20,8 @@ class Analyze(PluginBase):
         """
         # pylint: disable=W0231
         print("Test constructor")
+        self.input_params.add_integer_field(name='device_id', validation=None, required=True)
+        self.input_params.add_string_field(name='device_name', validation=None)
 
     # def get_input_configuration(self):
     #     """

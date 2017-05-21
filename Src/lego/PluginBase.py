@@ -6,24 +6,28 @@ the plugins do not have to explicitly register.
 
 import abc
 
-from marshmallow import Schema, post_dump
 from marshmallow_jsonschema import JSONSchema
 from .decorators import check_chart_configuration
 from .decorators import check_input_configuration
 from .decorators import check_modes_of_operation
 from .decorators import run_async
+from .Datatypes import InputParams
 # Plugin implementation
 
-class PluginBase(Schema):
+class PluginBase(metaclass=abc.ABCMeta):
     """
     The base class for all plugins that want to register with this application.
 
     """
     plugin_registry = {}
-    def __init__(self, name, group, *args, **kwargs):
+    def __init__(self, name, group):
+        """
+        Constructor to initialize basic fields.
+
+        """
         self.name = name
         self.group = group
-        Schema.__init__(self, *args, **kwargs)
+        self.input_params = InputParams()
 
     def __new__(cls, name, group, *args, **kwargs):
         """
@@ -92,7 +96,9 @@ class PluginBase(Schema):
 
         """
         json_schema = JSONSchema()
-        return json_schema.dump(self).data
+        schema_blue_print = self.input_params.generate_schema(self.name + 'InputParams')
+        schema_desc = schema_blue_print()
+        return json_schema.dump(schema_desc).data
 
     @abc.abstractmethod
     def get_chart_configuration(self):
@@ -118,12 +124,3 @@ class PluginBase(Schema):
         """
         print("Running abstract method")
         return
-
-    @post_dump
-    def add_extra_field(self, output):
-        """
-        Add extra field for sake of poc.
-
-        """
-        output['plugin_name'] = type(self).__name__
-        return output
