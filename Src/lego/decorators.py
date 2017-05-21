@@ -1,4 +1,10 @@
+"""
+Decorators that wrap plugin functions to add extra functionality.
+
+"""
+
 from functools import wraps
+from .TaskRunner import TaskRunner
 
 # Decorators
 def check_input_configuration(func):
@@ -57,7 +63,7 @@ def check_modes_of_operation(func):
 
         """
         try:
-            print('enter operation')
+            print('enter modes of operation')
             ret = func(self, *args, **kwargs)
             print('leave')
         except BaseException as exp:
@@ -66,6 +72,24 @@ def check_modes_of_operation(func):
 
         return ret
     return decorator
+
+def run_async(func):
+    """
+    Convert function to run in a separate Thread
+
+    """
+    @wraps(func)
+    def async_func(self, *args, **kwargs):
+        """
+        Asynchronous function using thread implementation.
+
+        """
+        del args
+        task = TaskRunner(run_function=func, obj=self, kwargs=kwargs)
+        ret = task.start()
+        return ret
+
+    return async_func
 
 def dont_decorate(func):
     """

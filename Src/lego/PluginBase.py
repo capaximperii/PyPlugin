@@ -7,10 +7,11 @@ the plugins do not have to explicitly register.
 import abc
 
 from marshmallow import Schema, post_dump
+from marshmallow_jsonschema import JSONSchema
 from .decorators import check_chart_configuration
 from .decorators import check_input_configuration
 from .decorators import check_modes_of_operation
-
+from .decorators import run_async
 # Plugin implementation
 
 class PluginBase(Schema):
@@ -18,11 +19,13 @@ class PluginBase(Schema):
     The base class for all plugins that want to register with this application.
 
     """
-    plugin_registry = []
-    def __init__(self):
-        Schema.__init__(self)
+    plugin_registry = {}
+    def __init__(self, name, group, *args, **kwargs):
+        self.name = name
+        self.group = group
+        Schema.__init__(self, *args, **kwargs)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, name, group, *args, **kwargs):
         """
         Factory method for base/subtype creation. Simply creates an
         (new-style class) object instance and sets a base property.
@@ -31,7 +34,7 @@ class PluginBase(Schema):
         del kwargs
         instance = object.__new__(cls)
         # Call base class constructors by default to avoid doing them in each plugin.
-        super(cls, instance).__init__()
+        super(cls, instance).__init__(name, group)
         typedef = cls.__dict__
         for attr in typedef:
             func = typedef[attr]
@@ -43,7 +46,12 @@ class PluginBase(Schema):
                 setattr(cls, attr, check_chart_configuration(func))
             elif callable(func) and func.__name__ == 'get_modes_of_operation':
                 setattr(cls, attr, check_modes_of_operation(func))
-        cls.plugin_registry.append(instance)
+            elif callable(func) and func.__name__ == 'run':
+                setattr(cls, attr, run_async(func))
+
+        if group not in cls.plugin_registry.keys():
+            cls.plugin_registry[group] = []
+        cls.plugin_registry[group].append(instance)
         return instance
 
     @classmethod
@@ -54,13 +62,37 @@ class PluginBase(Schema):
         """
         return cls.plugin_registry
 
-    @abc.abstractmethod
+    @classmethod
+    def get_plugins_group(cls, group):
+        """
+        Gets plugins registered under a single group name.
+
+        """
+        if not group in cls.plugin_registry.keys():
+            return None
+        return cls.plugin_registry[group]
+
+    def get_plugin_name(self):
+        """
+        returns the plugin name.
+
+        """
+        return self.name
+
+    def get_plugin_group(self):
+        """
+        returns plugin family name.
+
+        """
+        return self.group
+
     def get_input_configuration(self):
         """
         Get name and type json value for input parameters required by this plugin to operate.
 
         """
-        return None
+        json_schema = JSONSchema()
+        return json_schema.dump(self).data
 
     @abc.abstractmethod
     def get_chart_configuration(self):

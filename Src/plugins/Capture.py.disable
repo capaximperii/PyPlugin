@@ -2,18 +2,18 @@
 Example of a plugin implementaion.
 
 """
-from lego import PluginBase
-from marshmallow import fields
+from marshmallow import fields, validate
+from Lego.PluginBase import PluginBase
 
-class Test(PluginBase):
+class Capture(PluginBase):
     """
-    Unit test class.
+    Capture plugin implementation for EventLogs.
 
     """
     ident = fields.Int()
     name = fields.String()
 
-    def __init__(self):
+    def __init__(self, name, group):
         """
         Constructor
 
@@ -21,12 +21,12 @@ class Test(PluginBase):
         # pylint: disable=W0231
         print("Test constructor")
 
-    def get_input_configuration(self):
-        """
-        Define some input configuration to display input form.
+    # def get_input_configuration(self):
+    #     """
+    #     Define some input configuration to display input form.
 
-        """
-        return "Yay"
+    #     """
+    #     return "Yay"
 
     def get_chart_configuration(self):
         """
@@ -40,7 +40,7 @@ class Test(PluginBase):
         Get modes that this plugin operates in.
 
         """
-        return "yaas"
+        return ["Online","Offline"]
 
     def run(self):
         """
@@ -50,4 +50,4 @@ class Test(PluginBase):
         return None
 
 
-CREATE_ONE_OBJECT = Test() # The framework does the rest.
+CREATE_ONE_OBJECT = Capture(name="Capture", group="EventLogs") # The framework does the rest.

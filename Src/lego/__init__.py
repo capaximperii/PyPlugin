@@ -2,4 +2,5 @@
 Expose imports from the library as api.
 
 """
-from lego.PluginBase import PluginBase
+from Lego.PluginBase import PluginBase
+from Lego.TaskRunner import TaskRunner
