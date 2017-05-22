@@ -3,7 +3,7 @@ Example of a plugin implementaion.
 
 """
 from marshmallow import fields, validate
-from Lego.PluginBase import PluginBase
+from Lego import PluginBase
 
 class Analyze(PluginBase):
     """

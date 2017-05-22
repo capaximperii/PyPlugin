@@ -7,7 +7,7 @@ import mmap
 
 import struct
 
-class _IpcMeta:
+class _ShmemMeta:
     """
     Implements index for mmap space.
 
@@ -73,7 +73,7 @@ class _IpcMeta:
     def __repr__(self):
         return str(self.number_of_objects) + ' each of size ' + str(self.size_of_objects)
 
-class Ipc():
+class Shmem():
     """
     Inter process communication mechanism.
 
@@ -90,7 +90,7 @@ class Ipc():
 
 
     def _create_shmem(self, taskid, child):
-        self.meta = _IpcMeta()
+        self.meta = _ShmemMeta()
         if child is False:
             if os.name == 'nt':
                 self.sharedmem = mmap.mmap(-1, self.size, tagname='/tmp/fullsight.' + str(taskid))

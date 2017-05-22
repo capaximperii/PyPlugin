@@ -7,11 +7,11 @@ the plugins do not have to explicitly register.
 import abc
 
 from marshmallow_jsonschema import JSONSchema
+from Lego.Datatypes import InputParams
 from .decorators import check_chart_configuration
 from .decorators import check_input_configuration
 from .decorators import check_modes_of_operation
 from .decorators import run_async
-from .Datatypes import InputParams
 # Plugin implementation
 
 class PluginBase(metaclass=abc.ABCMeta):

@@ -3,7 +3,6 @@ Runs a task as an asynchronous thread with callback handler for database update.
 
 """
 from threading import Thread
-from functools import partial
 
 class TaskRunner(Thread):
     """

@@ -5,7 +5,7 @@ Demonstrates use in every blueprint of the app module.
 from plugins import *
 from Lego import PluginBase
 from Lego.Datatypes import RuntimeMonitorParams
-from Lego.Ipc import Ipc
+from Lego.Ipc import Shmem
 
 def main():
     """
@@ -21,8 +21,8 @@ def main():
             test.get_modes_of_operation()
 
     monitor = RuntimeMonitorParams()
-    writer_ipc = Ipc(10, child=True)
-    reader_ipc = Ipc(10, child=False)
+    writer_ipc = Shmem(10, child=True)
+    reader_ipc = Shmem(10, child=False)
 
     monitor.add_string_field('name', 20)
     monitor.add_unsigned_integer_field('score')
